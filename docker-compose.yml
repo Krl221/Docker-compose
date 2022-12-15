@@ -1,4 +1,4 @@
-version: '2'
+version: "3"
 services:
   prometheus:
     image: prom/prometheus
@@ -6,17 +6,131 @@ services:
       - '9090:9090'
     container_name: prometheus
     restart: always
-    network_mode: host
     volumes:
-      - '$HOME/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml'
+      - './prometheus.yml:/etc/prometheus/prometheus.yml'
+
   grafana:
     image: grafana/grafana
     ports:
       - '3000:3000'
     container_name: grafana
     restart: always
-    network_mode: host
     depends_on:
       - prometheus
     volumes:
-      - '$HOME/grafana/config/grafana.ini:/etc/grafana/grafana.ini'
+      - './grafana.ini:/etc/grafana/grafana.ini'
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    ports:
+      - '8080:8080'
+    restart: always
+    volumes:
+      - '/:/rootfs:ro'
+      - '/var/run:/var/run:rw'
+      - '/sys:/sys:ro'
+      - '/var/lib/docker/:/var/lib/docker:ro'
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - '6379:6379'
+
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter
+    container_name: exporter
+    command:
+      - '-nginx.scrape-uri=http://localhost:8081/stub_status'
+      - '-nginx.scrape-uri=http://localhost:8082/stub_status'
+      - '-nginx.scrape-uri=http://localhost:8083/stub_status'
+    ports:
+      - '9113:9113'
+#    links:
+#      - 'website'
+#      - 'website2'
+#      - 'website3'
+
+  website:
+    image: nginx
+    ports:
+      - '8081:80'
+    restart: always
+
+  website2:
+    image: nginx
+    ports:
+      - '8082:80'
+    restart: always
+
+  website3:
+    image: nginx
+    ports:
+      - '8083:80'
+    restart: always
+
+
+  node_exporter:
+    image: quay.io/prometheus/node-exporter
+    container_name: node_exporter
+    command:
+      - '--path.rootfs=/host'
+    ports:
+      - '9100:9100'
+    restart: always
+    volumes:
+      - '/:/host:ro,rslave'
+
+  postgres:
+    image: postgres
+    restart: always
+    environment:
+      - 'POSTGRES_DB=my_database'
+      - 'POSTGRES_USER=my_user'
+      - 'POSTGRES_PASSWORD=my_password'
+    ports:
+      - '5432:5432'
+    volumes:
+      - './data:/var/lib/postgresql/data'
+
+#  exporter:
+#    image: nginx/nginx-prometheus-exporter
+#    container_name: exporter
+#    ports:
+#      - '9113:9113'
+#    restart: always
+#    command:
+#      - '-nginx.scrape-uri=http://localhost:8081'
+#      - '-nginx.scrape-uri=http://localhost:8082'
+#      - '-nginx.scrape-uri=http://localhost:8083'
+#    links:
+#      - 'website'
+#      - 'website2'
+#      - 'website3'
+
+  jenkins:
+    image: jenkins/jenkins:lts
+    privileged: true
+    user: root
+    ports:
+      - '80:8080'
+      - '50000:50000'
+    container_name: jenkins
+    volumes:
+      - '/home/$karlo/jenkins_compose/jenkins_configuration:/var/jenkins_home'
+      - '/var/run/docker.sock:/var/run/docker.sock'
+
+  agent:
+    image: jenkins/ssh-agent:jdk11
+    privileged: true
+    user: root
+    container_name: agent
+    expose:
+      - '22'
+    environment:
+      - JENKINS_AGENT_SSH_PUBKEY=ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCnuNw/g1iiaWnAurml01j19bkj7ojF0cuLf/gZ3YS87ffnp+Q8w7B16PC49QTxrFTkJUUWtAJHU6Rz6zBVwgT81KkVk6/rXsDlu0XUxo70SD8nlSpqz/Ds3SKOHebBF4d6Tth9HqYlg2PZmpp7St3C1mjus+ZRf8eFsCrTUW0bqxVeCWM3VH9KgzW4KswBiCe4rm+yBIGuWyEC1BGmiAPA+2meZvE1FUPjvEJcuH5EO2wb8l8QLjtLLbeSJGCVDi63FdG+7/9ADimwaYAVKG3pR6xZu5LULajnXKFW5AvATAlJrUYAtWUuUa6K51UHC+/uojC+SthT5MImDeb6ASybfAEyFxwqKEShjPiSBciu82AsnxowrLOrJsJLZGWwkQs0ged5vOtd3DTzNWYWZTUldZZQtUJVKFj8Grex8gMtGs8Ja+F9jtEJwvx3grxbmMKWRvHCOAqTA0G5GgNNJUiq4SiL/Yq3U/sqlyQRwuFt2zCj9mWuPk3loaRvGPJP/Mk= root@karlo-VM
+
+
