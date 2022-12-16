@@ -1,25 +1,32 @@
-def name = "karlo"
+#def name = "karlo"
 
 pipeline {
 	agent any
 
 	stages {
-		stage('Build') {
+		stage("verify tooling") {
 			steps {
-				sh 'docker-compose build'
-			}
-		}
-
-		stage('Test') {
-			steps {
-				sh 'docker-compose run --rm app sh -c "python3 manage.py test"'
-			}
-		}
-
-		stage('Deploy') {
-			steps {
-				sh 'docker-compose up -d'
+				sh '''
+					docker version
+					docker info
+					docker compose version
+					vurl --version
+					jq --version
+				'''
 			}
 		}
 	}
-}		
+}
+#		stage('Test') {
+#			steps {
+#				sh 'docker-compose run --rm app sh -c "python3 manage.py test"'
+#			}
+#		}
+#
+#		stage('Deploy') {
+#			steps {
+#				sh 'docker-compose up -d'
+#			}
+#		}
+#	}
+#}		
