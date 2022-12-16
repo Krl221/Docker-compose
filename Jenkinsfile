@@ -1,3 +1,5 @@
+def name = "karlo"
+
 pipeline {
 	agent any
 
