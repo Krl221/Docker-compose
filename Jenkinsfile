@@ -1,5 +1,3 @@
-#def name = "karlo"
-
 pipeline {
 	agent any
 
@@ -10,7 +8,7 @@ pipeline {
 					docker version
 					docker info
 					docker compose version
-					vurl --version
+					curl --version
 					jq --version
 				'''
 			}
