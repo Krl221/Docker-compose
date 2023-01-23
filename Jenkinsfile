@@ -7,7 +7,7 @@ pipeline {
 				sh '''
 					sudo docker version
 					sudo docker info
-					sudo docker compose version
+					sudo docker-compose version
 				'''
 			}
 		}
