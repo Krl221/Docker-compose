@@ -10,7 +10,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
     - name: Login to Docker
-      run: echo "${{ secrets.DOCKER_PASS }}" | docker login -u "${{ secrets.DOCKER_USER }}" --password-stdin
+      run: echo "${{ secrets.DOCKER_USER }}" | docker login -u "${{ secrets.DOCKER_PASS }}" --password-stdin
     - name: Pull Docker Image
       run: docker pull <krl221/compose:first>
     - name: Push to GitHub
